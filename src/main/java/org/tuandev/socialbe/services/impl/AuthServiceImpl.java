@@ -10,10 +10,12 @@ import org.tuandev.socialbe.dto.request.LogoutRequest;
 import org.tuandev.socialbe.dto.request.UserRequest;
 import org.tuandev.socialbe.dto.response.AuthResponse;
 import org.tuandev.socialbe.dto.response.Response;
+import org.tuandev.socialbe.dto.response.UserResponse;
 import org.tuandev.socialbe.entities.User;
 import org.tuandev.socialbe.exceptions.AlreadyExistsException;
 import org.tuandev.socialbe.exceptions.NotAuthenticatedException;
 import org.tuandev.socialbe.exceptions.NotFoundException;
+import org.tuandev.socialbe.mapper.UserMapper;
 import org.tuandev.socialbe.repositories.UserRepository;
 import org.tuandev.socialbe.security.CustomUserDetails;
 import org.tuandev.socialbe.services.AuthService;
@@ -75,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
             throw new NotAuthenticatedException("Invalid or expired refresh token");
         }
 
-        String username = jwtService.getUsernameFromToken(refreshToken);
+        String username = jwtService.getUsernameFromRefreshToken(refreshToken);
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -90,6 +92,14 @@ public class AuthServiceImpl implements AuthService {
                         .build())
                 .timestamp(LocalDateTime.now())
                 .build();
+    }
+
+    @Override
+    public UserResponse getUserByToken(String token) {
+        String username = jwtService.getUsernameFromToken(token);
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return UserMapper.toUserResponse(user);
     }
 
     @Override

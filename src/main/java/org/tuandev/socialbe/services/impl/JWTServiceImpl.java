@@ -64,6 +64,11 @@ public class JWTServiceImpl implements JWTService {
     }
 
     @Override
+    public String getUsernameFromRefreshToken(String refreshToken) {
+        return Jwts.parser().verifyWith(Keys.hmacShaKeyFor(refreshSecret.getBytes())).build().parseSignedClaims(refreshToken).getPayload().getSubject();
+    }
+
+    @Override
     public long getExpirationTime(String token) {
         return Jwts.parser().verifyWith(Keys.hmacShaKeyFor(refreshSecret.getBytes())).build().parseSignedClaims(token).getPayload().getExpiration().getTime();
     }

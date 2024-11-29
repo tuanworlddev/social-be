@@ -4,10 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.tuandev.socialbe.dto.request.AuthRequest;
 import org.tuandev.socialbe.dto.request.LogoutRequest;
 import org.tuandev.socialbe.dto.request.RefreshTokenRequest;
@@ -23,6 +20,19 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+
+    @GetMapping("/user")
+    public ResponseEntity<Response> getUser(@RequestHeader("Authorization") String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        return ResponseEntity.ok(Response.builder()
+                        .code(200)
+                        .message("Success")
+                        .timestamp(LocalDateTime.now())
+                        .data(authService.getUserByToken(token))
+                .build());
+    }
 
     @PostMapping("/login")
     public ResponseEntity<Response> login(@RequestBody @Valid AuthRequest authRequest) {
