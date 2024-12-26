@@ -1,5 +1,6 @@
 package org.tuandev.socialbe.config;
 
+import com.google.gson.Gson;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.tuandev.socialbe.services.JWTService;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -45,7 +47,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             } catch (JwtException e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid or expired token");
+                response.getWriter().write(new Gson().toJson(Map.of("error", "Invalid or expired token")));
                 return;
             }
         }

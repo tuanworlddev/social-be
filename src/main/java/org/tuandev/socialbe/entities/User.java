@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 @Entity
 @Table(name = "users")
 public class User {
@@ -46,7 +47,7 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
-        status = UserStatus.active;
+        status = UserStatus.offline;
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
@@ -57,7 +58,7 @@ public class User {
     }
 
     public enum UserStatus {
-        active, locked
+        locked, online, offline
     }
 
     public enum UserRole {

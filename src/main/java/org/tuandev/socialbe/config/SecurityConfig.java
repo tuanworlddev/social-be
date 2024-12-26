@@ -1,5 +1,6 @@
 package org.tuandev.socialbe.config;
 
+import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -39,11 +40,14 @@ public class SecurityConfig {
                 jwtAuthFilter, UsernamePasswordAuthenticationFilter.class
         );
         http.authorizeHttpRequests(request -> {
+            request.requestMatchers("/**").permitAll();
+            request.requestMatchers("/static/**").permitAll();
             request.requestMatchers("/ws/**").permitAll();
             request.requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh-token").permitAll();
             request.requestMatchers("/api/auth/user", "/api/auth/logout").authenticated();
-            request.requestMatchers("/api/users").authenticated();
-            request.requestMatchers("/api/friends", "/api/friends/**").authenticated();
+            request.requestMatchers("/api/users", "/api/users/{userId}/status").authenticated();
+            request.requestMatchers("/api/friends", "/api/friends/not-friends", "/api/friends/requests", "/api/friends/requests/pending", "/api/friends/requests/{id}").authenticated();
+            request.requestMatchers("/api/messages/**").authenticated();
         });
         return http.build();
     }
@@ -53,7 +57,7 @@ public class SecurityConfig {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:4200");
+        config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
@@ -71,5 +75,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public Gson gson() {
+        return new Gson();
     }
 }

@@ -7,11 +7,13 @@ import org.tuandev.socialbe.dto.request.AddFriendRequest;
 import org.tuandev.socialbe.dto.request.UpdateFriendRequest;
 import org.tuandev.socialbe.dto.response.FriendResponse;
 import org.tuandev.socialbe.dto.response.Response;
+import org.tuandev.socialbe.dto.response.UserResponse;
 import org.tuandev.socialbe.entities.Friend;
 import org.tuandev.socialbe.services.FriendService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/friends")
@@ -22,65 +24,34 @@ public class FriendController {
         this.friendService = friendService;
     }
 
-    @GetMapping()
-    public ResponseEntity<Response> getAllFriends() {
-        List<FriendResponse> friendResponses = friendService.getAllFriends();
-        return ResponseEntity.ok(Response.builder()
-                .code(HttpStatus.OK.value())
-                .message("success")
-                .data(friendResponses)
-                .timestamp(LocalDateTime.now())
-                .build());
+    @GetMapping
+    public ResponseEntity<List<FriendResponse>> getFriends() {
+        return ResponseEntity.ok(friendService.getFriends());
     }
 
-    @GetMapping("/status")
-    public ResponseEntity<Response> getFriendsByStatus(@RequestParam("status") String status) {
-        try {
-            Friend.FriendStatus friendStatus = Friend.FriendStatus.valueOf(status);
-            List<FriendResponse> users = friendService.getFriendsByStatus(friendStatus);
-            return ResponseEntity.ok(Response.builder()
-                    .code(200)
-                    .data(users)
-                    .message("Success")
-                    .timestamp(LocalDateTime.now())
-                    .build());
-
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return ResponseEntity.badRequest().body(Response.builder()
-                    .code(400)
-                    .message("Invalid status value")
-                    .timestamp(LocalDateTime.now())
-                    .build());
-        }
+    @GetMapping("/not-friends")
+    public ResponseEntity<List<UserResponse>> getNotFriends() {
+        return ResponseEntity.ok(friendService.getNotFriends());
     }
 
-    @PostMapping
-    public ResponseEntity<Response> addFriend(@RequestBody AddFriendRequest addFriendRequest) {
-        friendService.addFriend(addFriendRequest.friendId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(Response.builder()
-                .code(201)
-                .message("Friend added successfully")
-                .timestamp(LocalDateTime.now())
-                .build());
+    @GetMapping("/requests/pending")
+    public ResponseEntity<List<FriendResponse>> getPendingRequests() {
+        return ResponseEntity.ok(friendService.getPendingRequests());
     }
 
-    @PatchMapping("/{friendId}")
-    public ResponseEntity<Response> updateFriend(@PathVariable("friendId") Integer friendId, @RequestBody UpdateFriendRequest updateFriendRequest) {
-        try {
-            friendService.updateStatus(friendId, Friend.FriendStatus.valueOf(updateFriendRequest.status()));
-            return ResponseEntity.status(HttpStatus.OK).body(Response.builder()
-                    .code(200)
-                    .message("Friend updated successfully")
-                    .timestamp(LocalDateTime.now())
-                    .build());
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return ResponseEntity.badRequest().body(Response.builder()
-                    .code(400)
-                    .message("Invalid status value")
-                    .timestamp(LocalDateTime.now())
-                    .build());
-        }
+    @PostMapping("/requests")
+    public ResponseEntity<Void> sendFriendRequest(@RequestBody Map<String, Integer> request) {
+        int friendId = request.get("friendId");
+        friendService.sendFriendRequest(friendId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/requests/{requestId}")
+    public ResponseEntity<Void> respondToRequest(
+            @PathVariable int requestId,
+            @RequestBody Map<String, String> response) {
+        String status = response.get("response");
+        friendService.respondToRequest(requestId, status);
+        return ResponseEntity.ok().build();
     }
 }
